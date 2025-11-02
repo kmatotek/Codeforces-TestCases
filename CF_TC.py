@@ -156,24 +156,37 @@ class CF_TC:
             console.log("Still on Cloudflare challenge for submission, waiting longer...")
             time.sleep(20)
 
-        if self.wait_till_load("/html/body/div[6]/div[4]/div/div[4]/div[2]/a", 10):
-            click_btn = self.driver.find_element(
-                By.XPATH, "/html/body/div[6]/div[4]/div/div[4]/div[2]/a"
-            )
-
-            click_btn.click()
-            time.sleep(3)
+        # Try multiple ways to find the "Tests" button
+        tests_found = False
+        for xpath in [
+            "/html/body/div[6]/div[4]/div/div[4]/div[2]/a",
+            "//a[contains(text(), 'Tests')]",
+            "//a[contains(@href, '#tests')]",
+            "//div[@class='tests']//a",
+        ]:
+            if self.wait_till_load(xpath, 5):
+                click_btn = self.driver.find_element(By.XPATH, xpath)
+                click_btn.click()
+                console.log(f"Clicked Tests button using {xpath}")
+                time.sleep(3)
+                tests_found = True
+                break
+        if not tests_found:
+            console.log("Tests button not found, trying to find tests directly")
 
         if self.wait_till_load("/html/body/div[6]/div[4]/div/div[4]/div[3]", 10):
             input = self.driver.find_elements(By.CLASS_NAME, "input")
             output = self.driver.find_elements(By.CLASS_NAME, "output")
+            console.log(f"Found {len(input)} input elements, {len(output)} output elements")
 
             tc = []
             for i in range(len(input)):
                 tc.append((input[i].text, output[i].text))
-            tc = tc[1:]
+            tc = tc[1:] if len(tc) > 1 else tc  # Skip first if more than one
             console.log(f"Total test cases found : {len(tc)}")
             return (True, tc)
+        else:
+            console.log("Tests div not found")
 
         return (None, "Error while finding test cases")
 
