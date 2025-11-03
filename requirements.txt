@@ -2,3 +2,6 @@ Requests
 selenium
 rich
 undetected-chromedriver
+cloudscraper
+beautifulsoup4
+lxml
