@@ -185,14 +185,9 @@ class CF_TC:
             f"https://codeforces.com/contest/{contest_id}/submission/{submission_id[1]}"
         )
 
-        # Wait until tests area or the Tests button is present (Cloudflare passed + page ready)
-        ready = self._wait_until_ready("//a[contains(@href, '#tests')]", total_timeout=120, poll=2.0)
-        if not ready:
-            # As a fallback, wait for the container that holds tests
-            ready = self._wait_until_ready("/html/body/div[6]/div[4]/div/div[4]", total_timeout=60, poll=2.0)
-        if not ready:
-            console.log("Timed out waiting for submission page to be ready")
-            return (None, "Submission page not ready")
+        # Try to wait for Cloudflare challenge to clear, but proceed regardless
+        _ = self._wait_until_ready("//a[contains(@href, '#tests')]", total_timeout=60, poll=2.0)
+        console.log(f"Submission page title: {self.driver.title}")
 
         # Try multiple ways to find the "Tests" button
         tests_found = False
