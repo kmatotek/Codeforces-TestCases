@@ -1,5 +1,5 @@
 import CF_TC
-import os, time
+import os, time, sys
 
 from rich.console import Console
 
@@ -43,11 +43,20 @@ def save_tc(cid, pid, tc):
 
 pvcodes = CF_TC.CF_TC()
 
-# cid = str(input("Enter contest id: "))
-cid = console.input("Enter the [bold green]Contest ID[/]: ")
+# Support CLI args or ENV for non-interactive runs
+cid = None
+pid = None
+if len(sys.argv) >= 3:
+    cid = str(sys.argv[1])
+    pid = str(sys.argv[2])
+else:
+    cid = os.getenv("CF_CID")
+    pid = os.getenv("CF_PID")
 
-# pid = str(input("Enter problem index (A-G or 1-8): "))
-pid = console.input("Enter the [bold green]problem index[/] [A-G]: ")
+if not cid:
+    cid = console.input("Enter the [bold green]Contest ID[/]: ")
+if not pid:
+    pid = console.input("Enter the [bold green]problem index[/] [A-G]: ")
 
 # res return a tuple of (status, TCs) if status is True, else (None, error_msg)
 pid = check_pid(pid)

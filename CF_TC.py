@@ -29,6 +29,27 @@ class CF_TC:
         self.base_url = "https://codeforces.com/"
         self.close = self.driver.close
 
+    def _wait_until_ready(self, expected_xpath: str, total_timeout: int = 90, poll: float = 1.5) -> bool:
+        """
+        Waits until Cloudflare challenge is gone and the expected element appears.
+        Returns True if the expected element is present before timeout.
+        """
+        start = time.time()
+        while time.time() - start < total_timeout:
+            title = self.driver.title or ""
+            page = self.driver.page_source or ""
+            if ("Just a moment" in title) or ("Verify you are human" in page):
+                time.sleep(poll)
+                continue
+            try:
+                WebDriverWait(self.driver, poll).until(
+                    EC.presence_of_element_located((By.XPATH, expected_xpath))
+                )
+                return True
+            except Exception:
+                time.sleep(poll)
+        return False
+
     def _isProblemExists(self, contest_id, problem_index):
         url = f"{self.base_url}api/contest.standings?contestId={contest_id}&from=1&count=1"
         r = requests.get(url)
@@ -54,12 +75,10 @@ class CF_TC:
         # Get to the contest submission page
         self.driver.get(f"{self.base_url}contest/{contest_id}/status")
 
-        # Wait longer for Cloudflare to pass
-        time.sleep(10)
-        # Check if still on challenge page
-        if "Just a moment" in self.driver.title or "Verify you are human" in self.driver.page_source:
-            console.log("Still on Cloudflare challenge, waiting longer...")
-            time.sleep(20)
+        # Wait until the filter select is available (Cloudflare passed + page ready)
+        if not self._wait_until_ready('//*[@id="frameProblemIndex"]', total_timeout=120, poll=2.0):
+            console.log("Timed out waiting for status page to be ready")
+            return (None, "Status page not ready")
 
         # Debug: print page title
         console.log(f"Page title: {self.driver.title}")
@@ -120,8 +139,8 @@ class CF_TC:
             console.log("verdictName not found")
             return (None, "Error while filtering problem verdict")
 
-        # Wait a bit more for the page to update after filtering
-        time.sleep(5)
+        # Wait a bit more for the table to update after filtering (or re-render)
+        self._wait_until_ready("//table", total_timeout=30, poll=1.0)
 
         # Try multiple XPaths for submission link
         link_found = False
@@ -166,11 +185,14 @@ class CF_TC:
             f"https://codeforces.com/contest/{contest_id}/submission/{submission_id[1]}"
         )
 
-        # Wait for Cloudflare
-        time.sleep(10)
-        if "Just a moment" in self.driver.title or "Verify you are human" in self.driver.page_source:
-            console.log("Still on Cloudflare challenge for submission, waiting longer...")
-            time.sleep(20)
+        # Wait until tests area or the Tests button is present (Cloudflare passed + page ready)
+        ready = self._wait_until_ready("//a[contains(@href, '#tests')]", total_timeout=120, poll=2.0)
+        if not ready:
+            # As a fallback, wait for the container that holds tests
+            ready = self._wait_until_ready("/html/body/div[6]/div[4]/div/div[4]", total_timeout=60, poll=2.0)
+        if not ready:
+            console.log("Timed out waiting for submission page to be ready")
+            return (None, "Submission page not ready")
 
         # Try multiple ways to find the "Tests" button
         tests_found = False
