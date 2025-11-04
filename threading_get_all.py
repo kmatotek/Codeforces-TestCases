@@ -7,6 +7,7 @@ from typing import List, Tuple
 
 import multiprocessing as mp
 import requests
+import cloudscraper
 from rich.console import Console
 
 import CF_TC
@@ -17,25 +18,49 @@ console = Console()
 console._log_render.omit_repeated_times = False
 
 
+SCRAPER_BASES = [
+    "https://codeforces.com/",
+    "https://codeforces.net/",
+    "https://m1.codeforces.com/",
+]
+
+
+def make_scraper():
+    return cloudscraper.create_scraper(
+        browser={"browser": "chrome", "platform": "windows", "mobile": False}
+    )
+
+
+def robust_get_json(path: str, timeout: int = 30, attempts: int = 5, sleep_sec: float = 1.5):
+    scraper = make_scraper()
+    last_err = None
+    for _ in range(attempts):
+        for base in SCRAPER_BASES:
+            url = f"{base}{path}"
+            try:
+                r = scraper.get(url, timeout=timeout)
+                r.raise_for_status()
+                data = r.json()
+                if data.get("status") == "OK":
+                    return data
+            except Exception as e:
+                last_err = e
+                continue
+        time.sleep(sleep_sec)
+    if last_err:
+        raise last_err
+    raise RuntimeError("Failed to fetch JSON from Codeforces API")
+
+
 def get_all_finished_contests() -> List[int]:
-    url = "https://codeforces.com/api/contest.list?gym=false"
-    r = requests.get(url, timeout=30)
-    r.raise_for_status()
-    data = r.json()
-    if data.get("status") != "OK":
-        raise RuntimeError("contest.list returned non-OK status")
+    data = robust_get_json("api/contest.list?gym=false", timeout=30, attempts=5)
     contests = [c for c in data.get("result", []) if c.get("phase") == "FINISHED"]
     contests.sort(key=lambda c: c.get("id"))  # oldest first
     return [c.get("id") for c in contests]
 
 
 def get_contest_problems(contest_id: int) -> List[str]:
-    url = f"https://codeforces.com/api/contest.standings?contestId={contest_id}&from=1&count=1"
-    r = requests.get(url, timeout=30)
-    r.raise_for_status()
-    data = r.json()
-    if data.get("status") != "OK":
-        return []
+    data = robust_get_json(f"api/contest.standings?contestId={contest_id}&from=1&count=1", timeout=30, attempts=5)
     return [p.get("index") for p in data.get("result", {}).get("problems", [])]
 
 
