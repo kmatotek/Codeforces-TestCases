@@ -18,27 +18,29 @@ def check_pid(pid):
 
 
 def save_tc(cid, pid, tc):
-    pth = f"{cid}{pid}"
+    base_dir = "problems"
+    os.makedirs(base_dir, exist_ok=True)
+
+    pth = os.path.join(base_dir, f"{cid}{pid}")
 
     # make a dir for that problem
     if not os.path.exists(pth):
         os.mkdir(pth)
 
-
     # save all TCs in sep files
     n = len(tc)
     for i in range(n):
-        tc_path = f"{pth}/tc{i+1}"
-        if not os.path.exists(tc_path):
-            os.mkdir(tc_path)
-        input_f = open(f"{tc_path}/input.txt", "w")
-        output_f = open(f"{tc_path}/output.txt", "w")
+        tc_path = os.path.join(pth, f"tc{i+1}")
+        os.makedirs(tc_path, exist_ok=True)
+
+        input_f = open(os.path.join(tc_path, "input.txt"), "w")
+        output_f = open(os.path.join(tc_path, "output.txt"), "w")
 
         console.log(f"Successfully created file: {tc_path}/input.txt and output.txt")
 
         input_f.write(tc[i][0])
         output_f.write(tc[i][1])
-        # time.sleep(1)
+
 
 
 pvcodes = CF_TC.CF_TC()

@@ -129,7 +129,8 @@ def ensure_dir(path: str) -> None:
 
 
 def save_description(contest_id: str, problem_index: str, markdown: str) -> None:
-    dir_name = f"{contest_id}{problem_index}"
+    base_dir = "problems"
+    dir_name = os.path.join(base_dir, f"{contest_id}{problem_index}")
     ensure_dir(dir_name)
     statement_path = os.path.join(dir_name, "statement.md")
     with open(statement_path, "w", encoding="utf-8") as f:
@@ -137,8 +138,9 @@ def save_description(contest_id: str, problem_index: str, markdown: str) -> None
     console.log(f"Saved statement: {statement_path}")
 
 
-def save_testcases(contest_id: str, problem_index: str, tc: List[Tuple[str, str]]) -> None:
-    dir_name = f"{contest_id}{problem_index}"
+def save_testcases(contest_id: str, problem_index: str, tc):
+    base_dir = "problems"
+    dir_name = os.path.join(base_dir, f"{contest_id}{problem_index}")
     ensure_dir(dir_name)
     for i, (inp, out) in enumerate(tc, 1):
         tc_dir = os.path.join(dir_name, f"tc{i}")
