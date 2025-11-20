@@ -1,3 +1,4 @@
+import json
 import os
 import sys
 import time
@@ -14,6 +15,91 @@ import CF_TC
 console = Console()
 console._log_render.omit_repeated_times = False
 
+def parse_problem_limits(html: str):
+    """
+    Extracts time limit and memory limit from Codeforces problem HTML.
+    
+    Returns dict with:
+    - time_limit: string (e.g., "2 seconds")
+    - memory_limit: string (e.g., "256 megabytes")
+    """
+    soup = BeautifulSoup(html, "html.parser")
+    
+    limits = {
+        "time_limit": None,
+        "memory_limit": None
+    }
+    
+    # Find the problem-statement div
+    root = soup.find("div", class_="problem-statement")
+    if not root:
+        return limits
+    
+    # Look for the header div which contains time/memory limits
+    header = root.find("div", class_="header")
+    if not header:
+        return limits
+    
+    # Find all divs with class "time-limit" and "memory-limit"
+    time_limit_div = header.find("div", class_="time-limit")
+    if time_limit_div:
+        # Extract text, usually in format "time limit per test2 seconds"
+        text = time_limit_div.get_text(strip=True)
+        # Remove the label part
+        if "time limit per test" in text.lower():
+            limits["time_limit"] = text.split("time limit per test", 1)[-1].strip()
+        else:
+            limits["time_limit"] = text
+    
+    memory_limit_div = header.find("div", class_="memory-limit")
+    if memory_limit_div:
+        text = memory_limit_div.get_text(strip=True)
+        if "memory limit per test" in text.lower():
+            limits["memory_limit"] = text.split("memory limit per test", 1)[-1].strip()
+        else:
+            limits["memory_limit"] = text
+    
+    return limits
+
+
+def save_limits(contest_id: str, problem_index: str, limits: dict) -> None:
+    """
+    Saves time and memory limits as JSON file in the problem directory.
+    """
+    base_dir = "problems"
+    dir_name = os.path.join(base_dir, f"{contest_id}{problem_index}")
+    ensure_dir(dir_name)
+    
+    limits_path = os.path.join(dir_name, "limits.json")
+    with open(limits_path, "w", encoding="utf-8") as f:
+        json.dump(limits, f, indent=2, ensure_ascii=False)
+    
+    console.log(f"Saved limits: {limits_path}")
+
+
+# Update the process_problem function to include limits extraction
+def process_problem(pvcodes: CF_TC.CF_TC, contest_id: str, problem_index: str) -> None:
+    console.log(f"Processing problem {contest_id}{problem_index}")
+    
+    # Fetch testcases via existing scraper
+    tc_res = pvcodes.get_testcases(contest_id, problem_index)
+    if tc_res[0] and tc_res[1]:
+        save_testcases(contest_id, problem_index, tc_res[1])
+    else:
+        console.log(f"Could not fetch system tests for {contest_id}{problem_index}: {tc_res[1]}")
+
+    # Fetch statement via cloudscraper
+    html = fetch_problem_html(contest_id, problem_index)
+    if html:
+        # Parse and save statement
+        md = parse_problem_statement_and_io(html)
+        save_description(contest_id, problem_index, md)
+        
+        # Parse and save limits
+        limits = parse_problem_limits(html)
+        save_limits(contest_id, problem_index, limits)
+    else:
+        console.log(f"Failed to fetch statement for {contest_id}{problem_index}")
 
 def get_contest_problems(contest_id: str) -> List[str]:
     url = f"https://codeforces.com/api/contest.standings?contestId={contest_id}&from=1&count=1"
@@ -146,25 +232,6 @@ def save_testcases(contest_id: str, problem_index: str, tc):
         with open(os.path.join(tc_dir, "output.txt"), "w", encoding="utf-8") as fo:
             fo.write(out)
     console.log(f"Saved {len(tc)} testcases under {dir_name}/")
-
-
-def process_problem(pvcodes: CF_TC.CF_TC, contest_id: str, problem_index: str) -> None:
-    console.log(f"Processing problem {contest_id}{problem_index}")
-    # Fetch testcases via existing scraper
-    tc_res = pvcodes.get_testcases(contest_id, problem_index)
-    if tc_res[0] and tc_res[1]:
-        save_testcases(contest_id, problem_index, tc_res[1])
-    else:
-        console.log(f"Could not fetch system tests for {contest_id}{problem_index}: {tc_res[1]}")
-
-    # Fetch statement via cloudscraper
-    html = fetch_problem_html(contest_id, problem_index)
-    if html:
-        md = parse_problem_statement_and_io(html)
-        save_description(contest_id, problem_index, md)
-    else:
-        console.log(f"Failed to fetch statement for {contest_id}{problem_index}")
-
 
 def main():
     if len(sys.argv) < 2:

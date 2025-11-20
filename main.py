@@ -1,6 +1,7 @@
+#main.py
 import CF_TC
 import contest_fetch as cf_fetch
-import os, time, sys
+import os, time, sys, json
 
 from rich.console import Console
 from contest_fetch import parse_problem_statement_and_io
@@ -80,22 +81,23 @@ n = len(res)
 
 if n > 0:
     save_tc(cid, pid, res)
-    # Also fetch and save the problem statement (Markdown + original HTML)
+    # Also fetch and save the problem statement (Markdown + original HTML + limits)
     try:
         page_html = pvcodes.fetch_problem_html_selenium(cid, pid)
         if page_html:
-            md = parse_problem_statement_and_io(page_html)
+            # Save statement as markdown
+            md = cf_fetch.parse_problem_statement_and_io(page_html)
             cf_fetch.save_description(cid, pid, md)
-            cf_fetch.save_description_html(cid, pid, page_html)
+            
+            # Save original HTML if you have that function
+            # cf_fetch.save_description_html(cid, pid, page_html)
+            
+            # Extract and save limits as JSON
+            limits = cf_fetch.parse_problem_limits(page_html)
+            cf_fetch.save_limits(cid, pid, limits)
         else:
             console.log(f"Failed to fetch statement for {cid}{pid}")
     except Exception as e:
         console.log(f"Error while fetching/saving statement for {cid}{pid}: {e}")
 else:
     console.log("Not enough TCs found! Please try later!", style="red on white")
-# else:
-#     print(id)
-
-# pvcodes.close()
-
-# pvcodes.get_testcases(1856, 1)
