@@ -274,3 +274,12 @@ class CF_TC:
         except TimeoutException:
             # print("Loading took too much time!")
             return 0
+    
+    def fetch_problem_html_selenium(self, contest_id, problem_index):
+        url = f"{self.base_url}contest/{contest_id}/problem/{problem_index}"
+        self.driver.get(url)
+
+        # Wait for Cloudflare
+        self._wait_until_ready("//div[contains(@class,'problem-statement')]", total_timeout=90)
+
+        return self.driver.page_source

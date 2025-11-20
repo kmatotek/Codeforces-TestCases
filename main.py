@@ -1,7 +1,9 @@
 import CF_TC
+import contest_fetch as cf_fetch
 import os, time, sys
 
 from rich.console import Console
+from contest_fetch import parse_problem_statement_and_io
 
 console = Console()
 console._log_render.omit_repeated_times = False
@@ -78,31 +80,19 @@ n = len(res)
 
 if n > 0:
     save_tc(cid, pid, res)
+    # Also fetch and save the problem statement (Markdown + original HTML)
+    try:
+        page_html = pvcodes.fetch_problem_html_selenium(cid, pid)
+        if page_html:
+            md = parse_problem_statement_and_io(page_html)
+            cf_fetch.save_description(cid, pid, md)
+            cf_fetch.save_description_html(cid, pid, page_html)
+        else:
+            console.log(f"Failed to fetch statement for {cid}{pid}")
+    except Exception as e:
+        console.log(f"Error while fetching/saving statement for {cid}{pid}: {e}")
 else:
     console.log("Not enough TCs found! Please try later!", style="red on white")
-
-
-# with open(f"[{cid}{pid}]input.txt", "w+") as f:
-#     for a, b in res:
-#         f.write(a)
-
-# with open(f"[{cid}{pid}]output.txt", "w+") as f:
-#     for a, b in res:
-#         f.write(b)
-
-
-# id = pvcodes.get_testcases(1882, "A")
-# cid = id[1]
-# n = None
-# if len(id) <= 10:
-#     n = len(id)
-# else:
-#     n = 10
-# if id:
-#     for i in range(n):
-#         print(id[i][0], id[i][1], sep="\n")
-#         print("\n----------------------\n")
-#     # print(id)
 # else:
 #     print(id)
 

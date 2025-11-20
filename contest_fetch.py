@@ -65,62 +65,58 @@ def fetch_problem_html(contest_id: str, problem_index: str) -> Optional[str]:
     return None
 
 
-def parse_problem_markdown(html: str) -> str:
-    soup = BeautifulSoup(html, "lxml")
-    root = soup.select_one("div.problem-statement")
+def parse_problem_statement_and_io(html: str):
+    """
+    Extracts only:
+    - Problem description
+    - Input specification
+    - Output specification
+
+    Returns Markdown string.
+    """
+    soup = BeautifulSoup(html, "html.parser")
+
+    root = soup.find("div", class_="problem-statement")
     if not root:
-        # Fallback: return whole page text if structure not found
-        return soup.get_text("\n", strip=False)
+        return "# Error: problem-statement block not found"
 
-    def text_of(sel: str) -> Optional[str]:
-        el = root.select_one(sel)
-        return el.get_text("\n", strip=False) if el else None
+    # --- DESCRIPTION ---
+    desc_block = []
+    all_divs = root.find_all(recursive=False)
 
-    title = text_of("div.header .title") or ""
-    time_limit = text_of("div.header .time-limit") or ""
-    memory_limit = text_of("div.header .memory-limit") or ""
-    statement_parts = []
-    # The statement paragraphs are usually direct children except sections; capture generously
-    for p in root.select(
-        ".header ~ p, .header ~ div:not(.input-specification):not(.output-specification):not(.sample-test):not(.note) p"
-    ):
-        statement_parts.append(p.get_text("\n", strip=False))
-    statement = "\n\n".join([s for s in statement_parts if s.strip()])
+    # Description is the second div (after the header)
+    if len(all_divs) >= 2:
+        desc_div = all_divs[1]
+        for p in desc_div.find_all("p"):
+            desc_block.append(p.get_text(strip=True))
 
-    input_spec = text_of("div.input-specification") or ""
-    output_spec = text_of("div.output-specification") or ""
+    # --- INPUT SPEC ---
+    input_div = root.find("div", class_="input-specification")
+    input_block = []
+    if input_div:
+        input_block.append("## Input")
+        for p in input_div.find_all("p"):
+            input_block.append(p.get_text(strip=True))
 
-    # Examples
-    examples = []
-    sample = root.select_one("div.sample-test") or root.select_one("div.sample-tests")
-    if sample:
-        ins = sample.select("div.input pre, .input pre")
-        outs = sample.select("div.output pre, .output pre")
-        for i_pre, o_pre in zip(ins, outs):
-            examples.append((i_pre.get_text("\n", strip=False), o_pre.get_text("\n", strip=False)))
+    # --- OUTPUT SPEC ---
+    output_div = root.find("div", class_="output-specification")
+    output_block = []
+    if output_div:
+        output_block.append("## Output")
+        for p in output_div.find_all("p"):
+            output_block.append(p.get_text(strip=True))
 
-    notes = text_of("div.note") or ""
+    # --- Assemble Markdown ---
+    md = ["# Problem Description", ""]
+    md.extend(desc_block)
+    md.append("")
+    md.extend(input_block)
+    md.append("")
+    md.extend(output_block)
 
-    # Build Markdown
-    md = []
-    if title:
-        md.append(f"# {title}")
-    if time_limit or memory_limit:
-        md.append(f"- Time limit: {time_limit}\n- Memory limit: {memory_limit}")
-    if statement:
-        md.append("\n## Statement\n" + statement)
-    if input_spec:
-        md.append("\n## Input\n" + input_spec)
-    if output_spec:
-        md.append("\n## Output\n" + output_spec)
-    if examples:
-        md.append("\n## Examples")
-        for idx, (inp, out) in enumerate(examples, 1):
-            md.append(f"\n### Example {idx}\nInput:\n\n```\n{inp}\n```\n\nOutput:\n\n```\n{out}\n```")
-    if notes:
-        md.append("\n## Notes\n" + notes)
+    return "\n".join(md)
 
-    return "\n\n".join(md).strip() + "\n"
+
 
 
 def ensure_dir(path: str) -> None:
@@ -164,7 +160,7 @@ def process_problem(pvcodes: CF_TC.CF_TC, contest_id: str, problem_index: str) -
     # Fetch statement via cloudscraper
     html = fetch_problem_html(contest_id, problem_index)
     if html:
-        md = parse_problem_markdown(html)
+        md = parse_problem_statement_and_io(html)
         save_description(contest_id, problem_index, md)
     else:
         console.log(f"Failed to fetch statement for {contest_id}{problem_index}")
