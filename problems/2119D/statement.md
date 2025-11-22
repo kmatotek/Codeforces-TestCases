@@ -1,0 +1,14 @@
+# Problem Description
+
+Define a sequence of integers $$$a$$$validif and only if $$$\forall 1 \le i \le n, 0 \le a_i \le i$$$.
+Define theweight$$$f(a)$$$ of avalidsequence $$$a$$$ of length $$$n$$$:
+For example, $$$f([0, 2, 1]) = 2$$$, because we can remove tokens on $$$2, 1$$$ or $$$2, 3$$$ in sequence.
+JT gives you two integers $$$n, m$$$ and asks you to find the sum of theweights over all $$$(n + 1)!$$$validsequences of length $$$n$$$. Since the answer may be too large, print it modulo $$$m$$$.
+
+## Input
+Each test contains multiple test cases. The first line contains the number of test cases $$$t$$$ ($$$1 \le t \le 1000$$$). The description of the test cases follows.
+The only line of each test case contains two integers $$$n$$$ and $$$m$$$ ($$$1 \le n \le 5000, 10^8 \le m \le 1.01 \cdot 10^9$$$) — the length ofvalidsequences, and the modulus.
+It is guaranteed that the sum of $$$n^2$$$ over all test cases does not exceed $$$2.5 \cdot 10^7$$$.
+
+## Output
+For each test case, output an integer — the sum of theweights over all $$$(n + 1)!$$$validsequences of length $$$n$$$, modulo $$$m$$$.

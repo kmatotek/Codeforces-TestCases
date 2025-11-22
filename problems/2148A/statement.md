@@ -1,0 +1,12 @@
+# Problem Description
+
+Farmer John has an integer $$$x$$$. He creates a sequence of length $$$n$$$ by alternating integers $$$x$$$ and $$$-x$$$, starting with $$$x$$$.
+For example, if $$$n = 5$$$, the sequence looks like: $$$x, -x, x, -x, x$$$.
+He asks you to find the sum of all integers in the sequence.
+
+## Input
+The first line contains an integer $$$t$$$ ($$$1 \leq t \leq 100$$$)  — the number of test cases.
+The only line of input for each test case is two integers $$$x$$$ and $$$n$$$ ($$$1 \leq x, n \leq 10$$$).
+
+## Output
+For each test case, output the sum of all integers in the sequence.

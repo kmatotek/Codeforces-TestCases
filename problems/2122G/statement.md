@@ -1,0 +1,17 @@
+# Problem Description
+
+
+Consider the following problem statement:
+You are given a tree with $$$n$$$ vertices rooted at $$$1$$$. For each $$$1 \leq i \leq n$$$, a car will enter the root at time $$$l_i$$$. It will then instantaneously travel from the root to vertex $$$i$$$ through the unique simple path and park there. It will leave through the same path in the other direction at time $$$r_i$$$.
+During the time when a car is parked in a vertex, it blocks other cars from traveling through that vertex. The tree is calledvalidif and only if all cars are able to enter and leave the tree at their desired times.
+Count the number of pairs of sequences $$$l$$$, $$$r$$$ such that $$$l_i < r_i$$$, their concatenation is a permutation of $$$1 \ldots 2n$$$, and the tree is valid.
+Calculate the sum of the answers to the problem over all labeled trees$$$^{\text{∗}}$$$ with $$$n$$$ vertices and $$$k$$$ leaves. The root is not considered a leaf. Since the answer may be large, calculate it modulo $$$998\,244\,353$$$.
+$$$^{\text{∗}}$$$Two labeled trees are considered different if and only if their edge sets are different.
+
+## Input
+Each test contains multiple test cases. The first line contains the number of test cases $$$t$$$ ($$$1 \le t \le 10^4$$$). The description of the test cases follows.
+The only line of each test case contains two integers $$$n$$$, $$$k$$$ ($$$1 \leq k < n \leq 2 \cdot 10^5$$$) — the number of vertices and leaves of the tree, respectively.
+It is guaranteed that the sum of $$$n$$$ over all test cases does not exceed $$$2 \cdot 10^5$$$.
+
+## Output
+For each test case, output one integer — the answer modulo $$$998\,244\,353$$$.

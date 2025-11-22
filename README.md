@@ -48,3 +48,5 @@ A python script for fetching all <b>TCs</b> of any problem on [codeforces](https
 </samp>
 
 
+# TODO
+can we get the time limit and space limit? llike what we have for the kattis problems?

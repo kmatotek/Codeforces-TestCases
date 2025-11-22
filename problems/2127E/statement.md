@@ -1,0 +1,24 @@
+# Problem Description
+
+
+Bahamin came from the past to visit Ali — who came from the future. He also brought an ancient tree as a gift for Ali. He noticed some of its vertices have lost their color. Bahamin needs to repaint these vertices, but he is very busy with fixing his time machine. Fortunately (or unfortunately), dinosaurs now handle such tasks — for a fee, of course. He needs your help to find the coloring with minimum cost. So he gives you the problem as follows.
+You are given a rooted tree$$$^{\text{∗}}$$$ of $$$n$$$ vertices, where vertex $$$1$$$ is the root. Each vertex has an integer weight $$$w_i$$$ and a color $$$c_i$$$, where the colors are integers between $$$1$$$ and $$$k$$$. However, some vertices have lost their colors, represented by $$$c_i = 0$$$.
+We call vertex $$$v$$$cutieif thereexiststwo vertices $$$x$$$ and $$$y$$$, such that
+Thecostof the tree is the sum of weights of allcutievertices.
+You have to assign colors between $$$1$$$ and $$$k$$$ to all the vertices which have lost their colors. Find the minimum possiblecostamong all valid colorings and provide a coloring with the minimum possiblecost.
+$$$^{\text{∗}}$$$A tree is a connected graph without cycles.  A rooted tree is a tree where one vertex is special and called the root.
+$$$^{\text{†}}$$$$$$\operatorname{lca}(x, y)$$$ denotes thelowest common ancestor (LCA)of $$$x$$$ and $$$y$$$.
+
+## Input
+Each test contains multiple test cases. The first line contains the number of test cases $$$t$$$ ($$$1 \le t \le 10^4$$$). The description of the test cases follows.
+The first line of each test case contains two integers $$$n$$$ and $$$k$$$ ($$$3 \leq n \leq 2 \cdot 10^5$$$, $$$2 \leq k \leq n$$$) — the number of vertices and the number of colors.
+The second line contains $$$n$$$ integers $$$w_1,w_2,\ldots,w_n$$$ ($$$1 \leq w_i \leq 10^9$$$) — the weight of vertices.
+The third line contains $$$n$$$ integers $$$c_1,c_2,\ldots,c_n$$$ ($$$0 \leq c_i \leq k$$$) — the color of vertices. $$$c_i=0$$$ means that vertex $$$i$$$ has lost its color.
+Then $$$n−1$$$ lines follow, the $$$i$$$-th line containing two integers $$$u$$$ and $$$v$$$ ($$$1 \leq u, v \leq n$$$) — the two vertices that the $$$i$$$-th edge connects.
+It is guaranteed that the given edges form a tree.
+It is guaranteed that the sum of $$$n$$$ over all test cases does not exceed $$$2 \cdot 10^5$$$.
+
+## Output
+For each test case, in the first line output a single integer — the minimum possiblecostamong all valid colorings.
+In the second line output $$$n$$$ integers $$$c'_1, c'_2, \ldots, c'_n$$$ — a coloring with the minimum possiblecost. You need to guarantee that:
+If there are multiple colorings with the minimum possiblecost, you can output any of them.
